@@ -1,0 +1,191 @@
+---
+title: "Twitter Sentiment Analysis of Coca-Cola Brand"
+author: ''
+date: "Oct 29, 2019"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+  theme: united
+  toc_depth: 3
+  highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+```
+
+
+```{r}
+library(rtweet)
+```
+
+
+```{r}
+## authenticate via access token
+
+token <- create_token(
+  app = "my_twitter_research_app",
+  consumer_key = "DICCTcJvq8kGbRUyotNyqnT1x",
+  consumer_secret = "aTJETV7SG88L9xwnAAQ2ctgHejA2OpktEhh7LKyjvRGZCqMaGR",
+  access_token = "1130593983594422272-IjVEwsxOdcws6Wwe2puBCLzV96dfxM",
+  access_secret = "AQs2tNJxo5uMG9zkrVwha9VEb9BvHdsbpwysR1sgtqJE9")
+
+```
+
+```{r}
+
+  ## check to see if the token is loaded
+identical(token, get_token())
+```
+#Novelty of the project topic
+
+##An important part of our information-gathering behavior has always been to find out what other people think (Pang, 2008). With the growing availability and popularity of opinion-rich resources such as social media, for example Twitter, new opportunities and challenges arise as people now can, and do, actively use information technologies to seek out and understand the opinions of others. This survey covers techniques and approaches that promise to directly enable opinion-oriented information-seeking systems. 
+
+
+```{r}
+
+##We will access Twitter using their official application programming interface (API)
+## search for 18000 tweets using the rstats hashtag
+rt <- search_tweets(
+  "#TRUMP", n = 18000, include_rts = FALSE
+)
+```
+
+#Relevance of the project topic
+##Our focus is on the R-Code that seek to address the new challenges raised by sentiment-aware applications, as compared to those that are already present in more traditional fact-based analysis. This topic was part of our class with Ash: Data Applications Tools and Techniques. It is relevant from the point of view of the administration of brands, to the extent that with these analyzes the companies can make decisions and plan strategies to strengthen some points and avoid bad perception.
+
+```{r}
+rt %>%
+  ts_plot("3 hours") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(plot.title = ggplot2::element_text(face = "bold")) +
+  ggplot2::labs(
+    x = NULL, y = NULL,
+    title = "Frequency of #Coca-Cola Twitter Hashtag from past 9 days",
+    subtitle = "Twitter status (tweet) counts aggregated using three-hour intervals",
+    caption = "\nSource: Data collected from Twitter's API-RTweet"
+  )
+```
+
+```{r}
+library(dplyr)
+```
+
+
+```{r}
+rt %>% 
+  distinct(user_id, source) %>% 
+  count(source, sort = TRUE) %>% 
+  top_n(10)
+```
+#Source of data collection
+
+##The source of data collection twitter can help to focus for example a campaign, segmenting twitter users, in the case of coca-cola users come mainly from those who use Android (44%) iPhone(28%) and Web Client (12%)
+
+
+```{r}
+rt_sent <- rt$text %>% 
+    syuzhet::get_nrc_sentiment()
+
+head(rt_sent) %>% 
+  knitr::kable(caption = "Twitter Sentiment")
+
+```
+#Explorartory data analysis
+##
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+rt_sent %>% 
+  summarize_all(sum, na.rm = TRUE) %>% 
+  select(-negative, -positive) %>% # Dropping these helps in plotting
+  reshape2::melt() %>% 
+  ggplot(aes(reorder(variable, -value), value)) +
+  geom_col() +
+  labs(x = "Sentiment About Coca-Cola Brand", y = "Frequency of Words") +
+  theme_minimal()
+
+
+## No id variables; using all as measure variables
+
+```
+# Modeling rigor
+##
+
+```{r}
+
+library(dplyr)
+rt_sent %>% 
+  summarize_all(sum, na.rm = TRUE) %>% 
+  select(negative, positive) %>% 
+  reshape2::melt() %>% 
+  ggplot(aes(reorder(variable, -value), value)) +
+  geom_col() +
+  labs(x = "General Sentiment about Coca.Cola Brand", y = "Frequency of Words") +
+  theme_minimal()
+```
+
+
+```{r}
+pkg<-c("tm","wordcloud","RColorBrewer","SnowballC","RCurl", "XML")
+lapply(pkg,function(x) if(x %in% rownames(installed.packages())==F) install.packages(x))
+lapply(pkg,require,character.only=TRUE)
+```
+
+```{r}
+#install.packages(contrib.url)
+#install.packages("tm")
+#install.packages("SnowballC")
+#install.packages("RColorBrewer")
+#install.packages("wordcloud")
+#install.packages("RCurl")
+#install.packages("XML")
+
+```
+
+
+```{r}
+rt_list <- rt[,c(0,5)]
+
+```
+
+```{r}
+library(quanteda)
+library(tm)
+library(wordcloud)
+```
+
+
+```{r}
+
+source('http://www.sthda.com/upload/rquery_wordcloud.r')
+rquery.wordcloud(x = rt_list$text, type = "text",
+                 excludeWords = c("oaks"),
+                 max.words = 100)
+```
+
+
+#Modeling performance
+##
+
+
+#Discussion and interpretation of the results
+##Managers have always needed to monitor media for information related to their brandswhether for public relations activities, sales increase, or competitive intelligence. But fragmenting media and changing consumer behavior have crippled traditional monitoring methods.This algorithm and code in R represent a powerful tool to analyze this phenomenon and make a decision, in the case of the Coca-Cola brand the feeling in general is positive on a ratio of approximately 60% / 40%. One issue to monitor and maybe make decisions is to review the comments on healthy drinks, since some comments were in the sense that coca cola contains a lot of sugar.
+
